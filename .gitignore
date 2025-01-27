@@ -1,3 +1,6 @@
 *.iml
 __pycache__
 .env
+venv
+my_test_bot*
+logs
