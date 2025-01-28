@@ -17,7 +17,7 @@ create table if not exists "Users"
     login      varchar(255),
     username   varchar(255),
     tg_user_id bigint unique,
-    status     varchar(6)               default 'Active',
+    status     varchar(10)               default 'Active',
     created_at timestamp with time zone default now()
 ); """,
 

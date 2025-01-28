@@ -19,9 +19,11 @@ storage = FSMStorage()
 
 def create_client(bot_name: str) -> Client:
     """
-    Создает клиент Pyrogram для работы с телеграм API
-    Аргументы: bot_name - принимает название бота
-    Возвращаем экземляр клиента
+    Создает клиент Pyrogram для работы с телеграм API.
+    Аргументы: 
+        - bot_name - принимает название бота.
+    Возвращаем:
+        Экземляр клиента.
     """
     return Client(
         name=bot_name,
@@ -32,10 +34,12 @@ def create_client(bot_name: str) -> Client:
 
 def create_app(client: Client = None) -> "BotApp":
     """
-    Создает экземляр приложения бота с клиентом Pyrogram
-    Аргументы: client - экземляр клиента Pyrogram
-    Если клиент не указан, создаем новый
-    Возвращаем экземляр приложения бота
+    Создает экземляр приложения бота с клиентом Pyrogram.
+    Аргументы: 
+        - Client - экземляр клиента Pyrogram.
+    Если клиент не указан, создаем новый.
+    Возвращаем:
+        Экземляр приложения бота.
     """
     return BotApp(client or create_client(BOT_NAME))
 
@@ -60,6 +64,7 @@ class BotApp:
         - Инициализирует подключение к базе данных.
         - Регистрирует обработчики событий.
         """
+        # Проверяет, есть ли нужные таблицы для работы бота, если нет, то создает их.
         logger.info("Applying migrations...")
         await run_migrations()
 
