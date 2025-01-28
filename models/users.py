@@ -5,6 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 class User(Base):
+    """Модель для представления пользователей в базе данных."""
     __tablename__ = "Users"
 
     id = Column(Integer, primary_key=True, index=True)

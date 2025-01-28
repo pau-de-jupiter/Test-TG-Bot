@@ -5,6 +5,18 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings(BaseSettings):
+    """
+    Класс для управления настройками приложения, загружаемыми из переменных окружения.
+    Атрибуты:
+        api_id (int): ID API Telegram.
+        api_hash (str): Hash API Telegram.
+        bot_token (str): Token Telegram-бота.
+        redis_password (str): Пароль для Redis.
+        postgres_user (str): Имя пользователя PSQL.
+        postgres_password (str): Пароль для PSQL.
+        postgres_db (str): Название базы данных PSQL.
+        postgres_port (int): Порт для подключения к PSQL.
+    """
     api_id: int
     api_hash: str
     bot_token: str

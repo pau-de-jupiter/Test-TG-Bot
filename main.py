@@ -18,6 +18,11 @@ logger = logging.getLogger('test_bot')
 storage = FSMStorage()
 
 def create_client(bot_name: str) -> Client:
+    """
+    Создает клиент Pyrogram для работы с телеграм API
+    Аргументы: bot_name - принимает название бота
+    Возвращаем экземляр клиента
+    """
     return Client(
         name=bot_name,
         api_id=settings.api_id,
@@ -26,18 +31,37 @@ def create_client(bot_name: str) -> Client:
     )
 
 def create_app(client: Client = None) -> "BotApp":
+    """
+    Создает экземляр приложения бота с клиентом Pyrogram
+    Аргументы: client - экземляр клиента Pyrogram
+    Если клиент не указан, создаем новый
+    Возвращаем экземляр приложения бота
+    """
     return BotApp(client or create_client(BOT_NAME))
 
 
 class BotApp:
+    """
+    Основной класс приложения Telegram-бота.
+    Атрибуты:
+        app (client): Клиент Pyrogram для взаимодействия с телеграм API.
+        stop_event (asyncio.Event): Событие для остановки бота.
+        db (Database): Экземпляр базы данных для работы с данными.
+    """
     def __init__(self, client):
         self.app = client
         self.stop_event = asyncio.Event()
         self.db = Database()
 
     async def setup(self,):
-        # logger.info("Applying migrations...")
-        # await run_migrations()
+        """
+        Настраивает приложение перед запуском:
+        - Применяет миграции базы данных (если нужно).
+        - Инициализирует подключение к базе данных.
+        - Регистрирует обработчики событий.
+        """
+        logger.info("Applying migrations...")
+        await run_migrations()
 
         await self.db.init()
         logger.info("Registering handlers...")
@@ -45,6 +69,10 @@ class BotApp:
         TaskHandler(self.app, self.db, storage).register()
 
     async def _run_bot(self):
+        """
+        Внутренний метод для запуска бота.
+        Выполняет настройку, запускает бота и ожидает события остановки.
+        """
         await self.setup()
         logger.info("Starting bot...")
         await self.app.start()
@@ -57,6 +85,9 @@ class BotApp:
             logger.info("Bot stopped gracefully..")
 
     def run(self):
+        """
+        Запускает асинхронный цикл событий для работы бота.
+        """
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self._run_bot())
     

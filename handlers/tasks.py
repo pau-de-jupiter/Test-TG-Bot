@@ -19,6 +19,22 @@ from database.databasehelper import CRUD
 logger = logging.getLogger('test_bot')
 
 class TaskHandler:
+    """
+    Обработчик задач для бота. Управляет созданием, обновлением, удалением и отображением задач.
+
+    Атрибуты:
+        app (Client): Клиент Pyrogram для взаимодействия с телеграм API.
+        db (Database): Экземпляр базы данных.
+        __session (CRUD): Вспомогательный объект для выполнения операций с базой данных.
+        storage (FSMStorage): Хранилище состояний FSM.
+        callback_handlers (dict): Карта обработчиков для обработки инлайн-кнопок.
+        message_handler (dict): Карта обработчиков для обработки текстовых сообщений.
+    Шаблонные аргументы в методах:
+        client (Client): Клиент Pyrogram.
+        message (Message): Сообщение пользователя.
+        callback_query (CallbackQuery): Объект инлайн-кнопки.
+        param (None): Дополнительный параметр.
+    """
     __stages = [value for key, value in vars(TaskState).items() if not key.startswith("__")]
     keyboard_template = [
                 [InlineKeyboardButton("Cancel", callback_data="cancel_task")]
@@ -33,7 +49,7 @@ class TaskHandler:
         self.db = db
         self.__session = CRUD(db.session)
         self.storage = storage
-        self.callback_handlers = {
+        self.callback_handlers: dict = {
             "my_tasks": self.my_tasks_handler,
             "cancel_task": self.cancel_task_handler,
             "back_stage": self.back_stage_handler,
@@ -44,7 +60,7 @@ class TaskHandler:
             "delete_task": self.delete_task_handler,
             "confirm_deletion": self.confirm_deletion_handler,
         }
-        self.message_handler = {
+        self.message_handler: dict = {
             "waiting_for_name": self.get_task_name,
             "waiting_for_description": self.get_task_description,
             "change_task_name": self.change_task_field_handler,
@@ -52,6 +68,9 @@ class TaskHandler:
         }
 
     def register(self):
+        """
+        Регистрирует обработчики для команды создания задач, просмотра задач, инлайн-кнопок и отслеживания текста.
+        """
         self.app.add_handler(MessageHandler(self.create_task_handler, filters.command("create_task")))
         self.app.add_handler(MessageHandler(self.my_tasks_handler, filters.command("my_tasks")))
         self.app.add_handler(CallbackQueryHandler(self.handle_callback))
@@ -59,7 +78,10 @@ class TaskHandler:
 
     @error_handler
     async def handle_callback(self, client: Client, callback_query: CallbackQuery):
-        """Обработчик инлайн-кнопок"""
+        """
+        Обрабатывает действия, вызванные инлайн-кнопками.
+        Обработчик вызывает нужные методы для работы с дальнешей логикой.
+        """
         user_id = callback_query.from_user.id
         data = callback_query.data
         user = await self.__session.get_user(user_id)
@@ -80,6 +102,10 @@ class TaskHandler:
 
     @error_handler
     async def handle_message(self, client: Client, message: Message):
+        """
+        Обрабатывает текстовые сообщения пользователя в зависимости от его текущего состояния.
+        Вызывает нужные методы для дальнейшей работы.
+        """
         user_id = message.from_user.id
         state = await self.storage.get_state(user_id)
         handler = self.message_handler.get(state)
@@ -89,15 +115,16 @@ class TaskHandler:
             await message.reply("Unknown action.")
 
     async def cancel_command(self, client: Client, message: Message):
+        """
+        Отменяет текущее действие пользователя и очищает состояние и данные пользователя.
+        """
         user_id = message.from_user.id
         await self.storage.clear_state(user_id)
         await message.message.reply("Choose an action in menu")
 
-    """
-    Text handler
-    """
     @error_handler
     async def create_task_handler(self, client: Client, message: Message):
+        """Начинает процесс создания новой задачи."""
         user_id = message.from_user.id
         user = await self.__session.get_user(user_id)
         if user:
@@ -110,6 +137,7 @@ class TaskHandler:
 
     @error_handler
     async def get_task_name(self, client: Client, message: Message):
+        """Сохраняет название задачи и запрашивает описание."""
         user_id = message.from_user.id
         await self.storage.set_data(user_id, {"task_name": message.text})
         await self.storage.set_state(user_id, TaskState.WAITING_FOR_DESCRIPTION)
@@ -119,6 +147,7 @@ class TaskHandler:
 
     @error_handler
     async def get_task_description(self, client: Client, message: Message):
+        """Получает описание задачи и запускает метод для сохранения данных в БД."""
         user_id = message.from_user.id
         data = await self.storage.get_data(user_id)
         task_name = data.get("task_name")
@@ -128,6 +157,12 @@ class TaskHandler:
     @error_handler
     async def save_task_data(self, client: Client, message: Message, 
                                    task_name: str, task_description: str):
+        """
+        Сохраняет данные новой задачи в базу данных.
+        Аргументы:
+            task_name (str): Название задачи.
+            task_description (str): Описание задачи.
+        """
         user_id = message.from_user.id
         await self.__session.add_task(message.from_user.id, task_name, task_description)
         await self.storage.clear_state(user_id)
@@ -136,6 +171,7 @@ class TaskHandler:
 
     @error_handler
     async def change_task_field_handler(self, client: Client, message: Message):
+        """Обновляет данные в задаче, в передаваемом поле."""
         user_id = message.from_user.id
         new_task_data = message.text
         data = await self.storage.get_data(user_id)
@@ -154,6 +190,13 @@ class TaskHandler:
     
     @error_handler
     async def my_tasks_handler(self, client: Client, message: Message, param=0):
+        """
+        Показывает список задач пользователя с разбивкой на страницы.
+        Каждая страница показывает по 10 задач.
+        Есть возможность перехода по страницам
+        Аргументы:
+            param (int, optional): Принимает номер страницы. По умолчанию 0.
+        """
         user_id = message.from_user.id
         target_message = getattr(message, 'message', message)
         await self.storage.clear_state(user_id)
@@ -182,14 +225,15 @@ class TaskHandler:
             task_buttons_grouped.append(navigation_buttons)
         await target_message.reply("Your tasks:", reply_markup=InlineKeyboardMarkup(task_buttons_grouped))
 
-    """
-    Callback handler
-    """
     async def cancel_task_handler(self, client: Client, callback_query: CallbackQuery, param: None):
+        """Обрабатывает отмену действия, вызываемое инлайн-кнопкой."""
         await self.cancel_command(client, callback_query)
 
     @error_handler
     async def back_stage_handler(self, client: Client, callback_query: CallbackQuery, param: None):
+        """
+        Возвращает пользователя на предыдущий этап создания, редактирования задачи или к списку с задачами.
+        """
         user_id = callback_query.from_user.id
         state = await self.storage.get_state(user_id)
         if state in TaskState.CREATE_TASK_STEP:
@@ -211,6 +255,7 @@ class TaskHandler:
 
     @error_handler
     async def detail_task_handler(self, client: Client, callback_query: CallbackQuery, param: None):
+        """Показывает подробности о задаче и предоставляет меню для её редактирования."""
         user_id = callback_query.from_user.id
         task_id = int(param)
         task_data = await self.__session.get_some_record(Task, "id", int(task_id))
@@ -236,6 +281,10 @@ class TaskHandler:
 
     @error_handler
     async def choose_task_status_handler(self, client: Client, callback_query: CallbackQuery, param: None):
+        """
+        Позволяет пользователю выбрать новый статус задачи.
+        Передаем список всех возможных статусов из STATUS_CHOICES
+        """
         user_id = callback_query.from_user.id
         data = await self.storage.get_data(user_id)
         task_data = data.get("data")
@@ -254,17 +303,27 @@ class TaskHandler:
 
     @error_handler
     async def choose_task_data_handler(self, client: Client, callback_query: CallbackQuery, param: None):
+        """
+        Устанавливает поле задачи, которое пользователь хочет изменить.
+        Ожидает текстового ответа от пользователя
+        Аргументы:
+            param (int, optional): Хранит название поля, которое нужно изменить.
+        """
         user_id = callback_query.from_user.id
         data = await self.storage.get_data(user_id)
         data["data"]["field"] = param
         await self.storage.set_data(user_id, data)
-
         await self.storage.set_state(user_id, TaskState.DICT_WITH_TASK_FIELDS[param])
         await callback_query.message.reply(f"Enter a new {param} for the task.", 
                                             reply_markup=InlineKeyboardMarkup(self.keyboard_template))
     
     @error_handler
     async def change_task_status_handler(self, client: Client, callback_query: CallbackQuery, param: None):
+        """
+        Обновляет статус задачи.
+        Аргументы:
+            param (str): Новый статус задачи.
+        """
         user_id = callback_query.from_user.id
         status = param
         data = await self.storage.get_data(user_id)
@@ -280,6 +339,7 @@ class TaskHandler:
         await self.cancel_command(client, callback_query)
     
     async def delete_task_handler(self, client: Client, callback_query: CallbackQuery, param: None):
+        """Подтверждает удаление задачи пользователем."""
         user_id = callback_query.from_user.id
         data = await self.storage.get_data(user_id)
         task_data = data.get("data")
@@ -292,6 +352,7 @@ class TaskHandler:
                                            reply_markup=InlineKeyboardMarkup(keyboard))
     
     async def confirm_deletion_handler(self, client: Client, callback_query: CallbackQuery, param: None):
+        """Удаляет задачу из базы данных."""
         user_id = callback_query.from_user.id
         data = await self.storage.get_data(user_id)
         task_data = data.get("data")

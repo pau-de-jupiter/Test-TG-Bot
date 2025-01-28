@@ -5,6 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 Base = declarative_base()
 
 class Task(Base):
+    """Модель для представления задач в базе данных."""
     __tablename__ = "Tasks"
 
     id = Column(Integer, primary_key=True, index=True)

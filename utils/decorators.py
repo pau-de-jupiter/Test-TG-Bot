@@ -6,6 +6,12 @@ from pyrogram.types import Message, CallbackQuery
 logger = logging.getLogger("test_bot")
 
 def error_handler(handler):
+    """
+    Декоратор для обработки ошибок, возникающих в обработчиках Pyrogram.
+    Если возникает исключение, декоратор логирует ошибку и отправляет пользователю сообщение об ошибке.
+    Аргументы:
+        handler (function): Функция-обработчик, к которой применяется декоратор.
+    """
     async def wrapper(*args, **kwargs):
         client = None
         for arg in args:

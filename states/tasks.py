@@ -1,6 +1,23 @@
 
 
 class TaskState:
+    """
+    Класс, представляющий возможные состояния и этапы управления задачами.
+    Атрибуты:
+        CREATE_TASK_STAGE (dict): Словарь с текстами сообщений для этапов создания задачи.
+            - "waiting_for_name": Сообщение для запроса имени задачи.
+            - "waiting_for_description": Сообщение для запроса описания задачи.
+        WAITING_FOR_NAME (str): Состояние, при котором ожидается ввод имени задачи.
+        WAITING_FOR_DESCRIPTION (str): Состояние, при котором ожидается ввод описания задачи.
+        CREATE_TASK_STEP (list): Последовательность состояний для создания задачи.
+        CHANGE_TASK_DATA (str): Состояние для изменения списка задач.
+        CHANGE_DETAIL_TASK (str): Шаблон состояния для изменения деталей задачи с указанием ID задачи.
+        CHANGE_TASK_NAME (str): Состояние для изменения имени задачи.
+        CHANGE_TASK_DESCRIPTION (str): Состояние для изменения описания задачи.
+        DICT_WITH_TASK_FIELDS (dict): Словарь, связывающий названия полей задачи с состояниями их изменения.
+            - "name": Состояние изменения имени задачи.
+            - "description": Состояние изменения описания задачи.
+    """
     CREATE_TASK_STAGE = {
         "waiting_for_name": "Enter the name of the task:",
         "waiting_for_description": "Enter a description of the task:"
@@ -20,7 +37,3 @@ class TaskState:
         "name": CHANGE_TASK_NAME,
         "description": CHANGE_TASK_DESCRIPTION,
     }
-    CHANGE_TASK_STEP = [
-        CHANGE_TASK_DATA,
-        CHANGE_DETAIL_TASK,
-    ]
