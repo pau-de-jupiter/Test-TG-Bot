@@ -20,6 +20,5 @@ PySocks==1.7.1
 python-dotenv==1.0.1
 redis==5.0.8
 SQLAlchemy==2.0.37
-TgCrypto==1.2.5
 typing_extensions==4.12.2
 yarl==1.18.3
