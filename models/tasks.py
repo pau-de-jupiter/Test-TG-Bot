@@ -9,7 +9,7 @@ class Task(Base):
     __tablename__ = "Tasks"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(255), nullable=False)
+    name = Column(String(50), nullable=False)
     description = Column(Text, nullable=False)
     tg_user_id = Column(BigInteger, nullable=False)
     status = Column(String(6), nullable=False, default="PROG")

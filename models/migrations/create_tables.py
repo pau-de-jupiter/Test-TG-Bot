@@ -26,7 +26,7 @@ create table if not exists "Users"
     id               serial
     constraint "Tasks_pkey"
     primary key,
-    name             varchar(255),
+    name             varchar(50),
     description      text,
     tg_user_id       bigint,
     status           varchar(6)               default 'PROG',
