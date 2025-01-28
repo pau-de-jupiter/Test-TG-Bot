@@ -19,7 +19,7 @@ class TaskState:
             - "description": Состояние изменения описания задачи.
     """
     CREATE_TASK_STAGE = {
-        "waiting_for_name": "Enter the name of the task:",
+        "waiting_for_name": "Enter the name of the task (length maximum 50 characters):",
         "waiting_for_description": "Enter a description of the task:"
     }
     WAITING_FOR_NAME = "waiting_for_name"
