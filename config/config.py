@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     postgres_db: str
     postgres_port: int
     def get_db_url(self) -> str:
-        return f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}@localhost/{self.postgres_db}"
+        return f"postgresql+asyncpg://{self.postgres_user}:{self.postgres_password}@db/{self.postgres_db}"
 
     class Config:
         env_file = ".env"

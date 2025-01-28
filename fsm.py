@@ -10,7 +10,7 @@ logger = logging.getLogger('test_bot')
 class FSMStorage():
     def __init__(self) -> None:
         self.redis_conn = Redis(
-            host="127.0.0.1", 
+            host="redis", 
             port=6379, 
             password=settings.redis_password, 
             decode_responses=True, 

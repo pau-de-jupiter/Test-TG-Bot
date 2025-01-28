@@ -34,6 +34,7 @@ class TaskHandler:
         self.__session = CRUD(db.session)
         self.storage = storage
         self.callback_handlers = {
+            "my_tasks": self.my_tasks_handler,
             "cancel_task": self.cancel_task_handler,
             "back_stage": self.back_stage_handler,
             "detail_task": self.detail_task_handler,
@@ -148,6 +149,8 @@ class TaskHandler:
             logger.info(f"User {user_id} has successfully updated the task {field} on {new_task_data}")
         else:
             await message.reply(f"There's been an error. Try again later.")
+        await self.storage.clear_state(user_id)
+        await message.reply("Choose an action in menu")
     
     @error_handler
     async def my_tasks_handler(self, client: Client, message: Message, param=0):
@@ -276,7 +279,6 @@ class TaskHandler:
             await callback_query.message.reply(f"There's been an error. Try again later.")
         await self.cancel_command(client, callback_query)
     
-    @error_handler
     async def delete_task_handler(self, client: Client, callback_query: CallbackQuery, param: None):
         user_id = callback_query.from_user.id
         data = await self.storage.get_data(user_id)
@@ -289,7 +291,6 @@ class TaskHandler:
         await callback_query.message.reply(f"Are you sure you want to delete the task?",
                                            reply_markup=InlineKeyboardMarkup(keyboard))
     
-    @error_handler
     async def confirm_deletion_handler(self, client: Client, callback_query: CallbackQuery, param: None):
         user_id = callback_query.from_user.id
         data = await self.storage.get_data(user_id)

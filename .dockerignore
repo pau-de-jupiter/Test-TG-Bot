@@ -1,0 +1,8 @@
+venv/
+__pycache__/
+
+make_migrations.py
+my_test_bot.session
+docker-compose.yml
+README.md
+template.env

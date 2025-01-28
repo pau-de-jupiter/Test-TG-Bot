@@ -1,7 +1,7 @@
 import logging
 
 from sqlalchemy.future import select
-from sqlalchemy import update, delete
+from sqlalchemy import update, delete, asc
 
 from models.users import User
 from models.tasks import Task
@@ -44,7 +44,11 @@ class CRUD:
     async def get_tasks(self, tg_user_id):
         async with self.async_session as session:
             try:
-                result = await session.execute(select(Task).where(Task.tg_user_id == tg_user_id))
+                result = await session.execute(
+                select(Task)
+                .where(Task.tg_user_id == tg_user_id)
+                .order_by(asc(Task.created_at))
+            )
             except Exception as e:
                 logger.error(f"The get_tasks function crashed with an error: {e}")
                 return
