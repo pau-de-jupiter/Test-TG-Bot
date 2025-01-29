@@ -12,11 +12,7 @@ class TaskState:
         CREATE_TASK_STEP (list): Последовательность состояний для создания задачи.
         CHANGE_TASK_DATA (str): Состояние для изменения списка задач.
         CHANGE_DETAIL_TASK (str): Шаблон состояния для изменения деталей задачи с указанием ID задачи.
-        CHANGE_TASK_NAME (str): Состояние для изменения имени задачи.
-        CHANGE_TASK_DESCRIPTION (str): Состояние для изменения описания задачи.
-        DICT_WITH_TASK_FIELDS (dict): Словарь, связывающий названия полей задачи с состояниями их изменения.
-            - "name": Состояние изменения имени задачи.
-            - "description": Состояние изменения описания задачи.
+        CHANGE_TASK_FIELD (str): Состояние для изменения поля задачи (сейчас используется для имени и описания).
     """
     CREATE_TASK_STAGE = {
         "waiting_for_name": "Enter the name of the task (length maximum 50 characters):",
@@ -30,10 +26,4 @@ class TaskState:
     ]
     CHANGE_TASK_DATA = "my_tasks:0"
     CHANGE_DETAIL_TASK = "detail_task:{taskId}"
-
-    CHANGE_TASK_NAME = "change_task_name"
-    CHANGE_TASK_DESCRIPTION = "change_task_description"
-    DICT_WITH_TASK_FIELDS = {
-        "name": CHANGE_TASK_NAME,
-        "description": CHANGE_TASK_DESCRIPTION,
-    }
+    CHANGE_TASK_FIELD = "change_task_field"

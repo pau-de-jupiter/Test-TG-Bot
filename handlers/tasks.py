@@ -6,7 +6,7 @@ from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 
 from fsm import FSMStorage
 from models.tasks import Task
-from utils.utils import chunk_tasks
+from utils.utils import chunk_tasks, TaskValidator
 from utils.decorators import error_handler
 
 from states.tasks import TaskState
@@ -63,8 +63,7 @@ class TaskHandler:
         self.message_handler: dict = {
             "waiting_for_name": self.get_task_name,
             "waiting_for_description": self.get_task_description,
-            "change_task_name": self.change_task_field_handler,
-            "change_task_description": self.change_task_field_handler,
+            "change_task_field": self.change_task_field_handler,
         }
 
     def register(self):
@@ -139,6 +138,10 @@ class TaskHandler:
     async def get_task_name(self, client: Client, message: Message):
         """Сохраняет название задачи и запрашивает описание."""
         user_id = message.from_user.id
+        is_valid, error_msg = TaskValidator.validate("name", message.text)
+        if not is_valid:
+            await message.reply(error_msg)
+            return
         await self.storage.set_data(user_id, {"task_name": message.text})
         await self.storage.set_state(user_id, TaskState.WAITING_FOR_DESCRIPTION)
         keyboard = self.keyboard_template.copy()
@@ -178,6 +181,10 @@ class TaskHandler:
         task_data = data.get("data")
         task_id = task_data["task_id"]
         field = task_data["field"]
+        is_valid, error_msg = TaskValidator.validate(field, new_task_data)
+        if not is_valid:
+            await message.reply(error_msg)
+            return
         result = await self.__session.update_task(Task, "id", int(task_id),
                                                   {field:new_task_data})
         if result:
@@ -313,7 +320,7 @@ class TaskHandler:
         data = await self.storage.get_data(user_id)
         data["data"]["field"] = param
         await self.storage.set_data(user_id, data)
-        await self.storage.set_state(user_id, TaskState.DICT_WITH_TASK_FIELDS[param])
+        await self.storage.set_state(user_id, TaskState.CHANGE_TASK_FIELD)
         await callback_query.message.reply(f"Enter a new {param} for the task.", 
                                             reply_markup=InlineKeyboardMarkup(self.keyboard_template))
     
